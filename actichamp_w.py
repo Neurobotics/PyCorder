@@ -38,6 +38,9 @@ import time
 import ConfigParser
 import platform
 
+import os
+import sys
+
 # enable or disable the Python Signal Generator for simulation mode
 PYSIGGEN = False
 #PYSIGGEN = True
@@ -121,6 +124,15 @@ CHAMP_RATE_1KHZ = 13   # 1 kHz
 CHAMP_RATE_500HZ = 14   # 500 Hz
 CHAMP_RATE_200HZ = 15   # 200 Hz
 
+CHAMP_RATE_1000HZ_1BUNCH = 16   # 100 kHz, max 64 channels
+CHAMP_RATE_1000HZ_2BUNCH = 17   # 100 kHz, max 64 channels
+
+CHAMP_MODULE_ENABLE = [ True, True, False, False, False ]
+
+def setChampModuleEnable (index, enabled) :
+    if 0 <= index < 5:
+        CHAMP_MODULE_ENABLE[index] = enabled
+
 # sample rate frequency dictionary (amplifier DLL base frequencies available for the application)
 # if you want to do the decimation and filtering in Python (amplifier.py) then  
 # set this value to True:
@@ -136,7 +148,8 @@ else:
                    CHAMP_RATE_200HZ:200.0, CHAMP_RATE_500HZ:500.0, CHAMP_RATE_1KHZ:1000.0,
                    CHAMP_RATE_2KHZ:2000.0, CHAMP_RATE_5KHZ:5000.0,
                    CHAMP_RATE_10KHZ:10000.0, CHAMP_RATE_25KHZ:25000.0, 
-                   CHAMP_RATE_50KHZ:50000.0, CHAMP_RATE_100KHZ:100000.0 
+                   CHAMP_RATE_50KHZ:50000.0, CHAMP_RATE_100KHZ:100000.0,
+                   CHAMP_RATE_1000HZ_1BUNCH: 1000.0, CHAMP_RATE_1000HZ_2BUNCH: 1000.0
                   }
 
 # trigger delay dictionary (for constant trigger delay compensation)
@@ -144,7 +157,7 @@ trigger_delay = {
                  CHAMP_RATE_200HZ:1, CHAMP_RATE_500HZ:1, CHAMP_RATE_1KHZ:1,
                  CHAMP_RATE_2KHZ:1, CHAMP_RATE_5KHZ:1,
                  CHAMP_RATE_10KHZ:1, CHAMP_RATE_25KHZ:1, 
-                 CHAMP_RATE_50KHZ:1, CHAMP_RATE_100KHZ:1 }
+                 CHAMP_RATE_50KHZ:1, CHAMP_RATE_100KHZ:1,  CHAMP_RATE_1000HZ_1BUNCH: 1, CHAMP_RATE_1000HZ_2BUNCH: 1}
 
 # sample rate extended settings dictionary
 # translate application base frequency to amplifier physical frequency
@@ -153,13 +166,13 @@ sample_rate_settings = {
                         CHAMP_RATE_200HZ:0, CHAMP_RATE_500HZ:0, CHAMP_RATE_1KHZ:0,
                         CHAMP_RATE_2KHZ:0, CHAMP_RATE_5KHZ:0,
                         CHAMP_RATE_10KHZ:0, CHAMP_RATE_25KHZ:1, 
-                        CHAMP_RATE_50KHZ:1, CHAMP_RATE_100KHZ:2 }
+                        CHAMP_RATE_50KHZ:1, CHAMP_RATE_100KHZ:2, CHAMP_RATE_1000HZ_1BUNCH: 0, CHAMP_RATE_1000HZ_2BUNCH: 0 }
 # decimation values (rate = physical / decimation) 
 sample_rate_decimation = {
                           CHAMP_RATE_200HZ:CHAMP_DECIMATION_50, CHAMP_RATE_500HZ:CHAMP_DECIMATION_20, CHAMP_RATE_1KHZ:CHAMP_DECIMATION_10,
                           CHAMP_RATE_2KHZ:CHAMP_DECIMATION_5, CHAMP_RATE_5KHZ:CHAMP_DECIMATION_2,
                           CHAMP_RATE_10KHZ:CHAMP_DECIMATION_0, CHAMP_RATE_25KHZ:CHAMP_DECIMATION_2,
-                          CHAMP_RATE_50KHZ:CHAMP_DECIMATION_0, CHAMP_RATE_100KHZ:CHAMP_DECIMATION_0 }
+                          CHAMP_RATE_50KHZ:CHAMP_DECIMATION_0, CHAMP_RATE_100KHZ:CHAMP_DECIMATION_0, CHAMP_RATE_1000HZ_1BUNCH: CHAMP_DECIMATION_10, CHAMP_RATE_1000HZ_2BUNCH: CHAMP_DECIMATION_10 }
 
 
 
@@ -458,6 +471,7 @@ class ActiChamp(object):
     def __init__(self):
         ''' Constructor
         '''
+
         # get OS architecture (32/64-bit)
         self.x64 = ("64" in platform.architecture()[0])
         
@@ -645,8 +659,7 @@ class ActiChamp(object):
             raise AmpError("device not open")
 
         # setup amplifier
-        ex_settings = self._get_settings_ex(self.settings) 
-        
+        ex_settings = self._get_settings_ex(self.settings)
         # limit the number of modules (1xEEG + AUX) if sampling rate is 100KHz
         if self.settings.Rate == CHAMP_RATE_100KHZ:
             self.modulestate.Enabled = self.modulestate.Present & 0x03
@@ -656,9 +669,40 @@ class ActiChamp(object):
         # limit the number of modules (4xEEG + AUX) if sampling rate is 25KHz
         elif self.settings.Rate == CHAMP_RATE_25KHZ:
             self.modulestate.Enabled = self.modulestate.Present & 0x1F
+        elif self.settings.Rate == CHAMP_RATE_1000HZ_1BUNCH:
+            self.modulestate.Enabled = self.modulestate.Present & 0x03
+        elif self.settings.Rate == CHAMP_RATE_1000HZ_2BUNCH:
+            self.modulestate.Enabled = self.modulestate.Present & 0x07
         # enable all present modules if sampling rate is below 25KHz
         else:            
             self.modulestate.Enabled = self.modulestate.Present
+
+        # 1 BUNCH + AUX  : 0x03
+        # 2 BUNCHES + AUX: 0x07
+        # 3 BUNCHES + AUX: 0x0F
+        # 5 BUNCHES + AUX: 0x1F
+        # 5 BUNCHES + AUX: 0x37
+
+        moduleFlags = [0x02,0x04,0x08,0x10,0x20]
+
+        moduleEnabled = 0
+        for i in range(len(CHAMP_MODULE_ENABLE)):
+            if CHAMP_MODULE_ENABLE[i]:
+                moduleEnabled |= moduleFlags[i]
+
+        # print('MODULES', moduleEnabled)
+
+        self.modulestate.Enabled = self.modulestate.Present & moduleEnabled
+
+
+        #     if self.online_cfg.checkBoxModule2.isChecked():
+        #         self.modulestate.Enabled = self.modulestate.Present & 0x07
+        #         if self.online_cfg.checkBoxModule3.isChecked():
+        #             self.modulestate.Enabled = self.modulestate.Present & 0x0F
+        #             if self.online_cfg.checkBoxModule4.isChecked():
+        #                 self.modulestate.Enabled = self.modulestate.Present & 0x1F
+        #                 if self.online_cfg.checkBoxModule5.isChecked():
+        #                     self.modulestate.Enabled = self.modulestate.Present & 0x37
 
         # start impedance measurement always with 10KHz 
         if ex_settings.Mode == CHAMP_MODE_IMPEDANCE:
@@ -1063,6 +1107,10 @@ class ActiChamp(object):
         mindiv = 100000
         base = -1
         div = 1
+        if samplingrate == 1001.0 or samplingrate == 1002.0:
+            base = 13
+            div = 1
+            return base, div
         for sr in sample_rate:
             div = sample_rate[sr] / samplingrate
             if int(div) == div:

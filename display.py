@@ -38,6 +38,7 @@ from modbase import *
 from res import frmScopeOnline
 from operator import itemgetter
 from collections import defaultdict
+from actichamp_w import *
 
 '''
 ------------------------------------------------------------
@@ -79,6 +80,18 @@ class DISP_Scope(Qwt.QwtPlot, ModuleBase):
                      self.baselineNowClicked)
         self.connect(self.online_cfg.checkBoxBaseline, Qt.SIGNAL("stateChanged()"),
                      self.baselineNowClicked)
+
+        self.online_cfg.checkBoxModule1.setChecked(CHAMP_MODULE_ENABLE[0])
+        self.online_cfg.checkBoxModule2.setChecked(CHAMP_MODULE_ENABLE[1])
+        self.online_cfg.checkBoxModule3.setChecked(CHAMP_MODULE_ENABLE[2])
+        self.online_cfg.checkBoxModule4.setChecked(CHAMP_MODULE_ENABLE[3])
+        self.online_cfg.checkBoxModule5.setChecked(CHAMP_MODULE_ENABLE[4])
+
+        self.connect(self.online_cfg.checkBoxModule1, Qt.SIGNAL("stateChanged(int)"), self.toggleChampModule1)
+        self.connect(self.online_cfg.checkBoxModule2, Qt.SIGNAL("stateChanged(int)"), self.toggleChampModule2)
+        self.connect(self.online_cfg.checkBoxModule3, Qt.SIGNAL("stateChanged(int)"), self.toggleChampModule3)
+        self.connect(self.online_cfg.checkBoxModule4, Qt.SIGNAL("stateChanged(int)"), self.toggleChampModule4)
+        self.connect(self.online_cfg.checkBoxModule5, Qt.SIGNAL("stateChanged(int)"), self.toggleChampModule5)
 
         # legend
         legend = _ScopeLegend()
@@ -159,8 +172,8 @@ class DISP_Scope(Qwt.QwtPlot, ModuleBase):
         self.setScale(self.online_cfg.set_scale(100.0, 1000.0)) # EEG: 100µV, AUX: 1000µV / Division
         self.timebase = self.online_cfg.set_timebase(10.0)      # 10s / Screen
         self.online_cfg.set_groupsize(16)                       # group size 16 channels
-        self.online_cfg.checkBoxBaseline.setChecked(True)       # baseline correction enabled                    
-        
+        self.online_cfg.checkBoxBaseline.setChecked(True)       # baseline correction enabled
+
         # update display
         self.process_update(self.eeg)
         
@@ -629,6 +642,27 @@ class DISP_Scope(Qwt.QwtPlot, ModuleBase):
         # release thread lock 
         self._thLock.release()
         self.onlineCfgChanged()
+
+    def toggleChampModule1(self, value):
+        # print('check', self._object_name, (value == Qt.Qt.Checked))
+        setChampModuleEnable(0, (value == Qt.Qt.Checked))
+
+    def toggleChampModule2(self, value):
+        # print('check', self._object_name, (value == Qt.Qt.Checked))
+        setChampModuleEnable(1, (value == Qt.Qt.Checked))
+
+    def toggleChampModule3(self, value):
+        # print('check', self._object_name, (value == Qt.Qt.Checked))
+        setChampModuleEnable(2, (value == Qt.Qt.Checked))
+
+    def toggleChampModule4(self, value):
+        # print('check', self._object_name, (value == Qt.Qt.Checked))
+        setChampModuleEnable(3, (value == Qt.Qt.Checked))
+
+    def toggleChampModule5(self, value):
+        # print('check', self._object_name, (value == Qt.Qt.Checked))
+        setChampModuleEnable(4, (value == Qt.Qt.Checked))
+
 
     def channelItemClicked(self, plotitem):
         ''' SIGNAL Channel legend clicked

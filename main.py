@@ -97,8 +97,8 @@ import loadlibs
 
 # check library import
 if len(loadlibs.import_log) > 0:
-    print "PyCorder: The following libraries are missing or have the wrong version\r\n\r\n"
-    print loadlibs.import_log
+    print("PyCorder: The following libraries are missing or have the wrong version\r\n\r\n")
+    print(loadlibs.import_log)
     if "missing" in loadlibs.import_log:
         raw_input("Press RETURN to close the application ..." )
         sys.exit(1)
@@ -897,7 +897,7 @@ class MainWindow(Qt.QMainWindow, frmMain.Ui_MainWindow):
             logdir = Qt.QDir(logpath)
             if not logdir.exists():
                 if self.battery_log:
-                    print "Battery Log is disabled because the log directory (%s) doesn't exist"%logpath
+                    print("Battery Log is disabled because the log directory (%s) doesn't exist"%logpath)
                 self.battery_log = False
             else:
                 fname = "CHampBattery_"
@@ -934,9 +934,9 @@ class MainWindow(Qt.QMainWindow, frmMain.Ui_MainWindow):
                 self.battery_logfile = logfile
 
                 if self.battery_log:
-                    print "Battery Log to %s is enabled"%self.battery_logfile 
+                    print("Battery Log to %s is enabled"%self.battery_logfile)
         except Exception as e:
-            print e
+            print(e)
             self.battery_log = False
         
         
@@ -1304,11 +1304,11 @@ def setpriority(priority=2):
                 cpu += 1
             mask = mask << 1
         kernel32.SetProcessAffinityMask(p, pmask)
-        print "INFO: Available CPUs (bit mask) 0x%04X, Python process limited to 0x%04X"%(smask, pmask)
+        print("INFO: Available CPUs (bit mask) 0x%04X, Python process limited to 0x%04X"%(smask, pmask))
         
     except Exception as e:
         tb = GetExceptionTraceBack()[0]
-        print "INFO: the process priority can not be raised because PyWin32 is not installed or an error occurred.\n      - %s->%s"%(tb, str(e))
+        print("INFO: the process priority can not be raised because PyWin32 is not installed or an error occurred.\n      - %s->%s"%(tb, str(e)))
 
 
 '''
@@ -1319,24 +1319,25 @@ MAIN APPLICATION
 def main(args):
     ''' Create and start up main application
     '''    
-    print "Starting PyCorder, please wait ...\n"
+    print("Starting PyCorder, please wait ...\n")
     setpriority(priority=4)
     app = Qt.QApplication(args)
     try:
         win = None
         win = MainWindow()
         win.showMaximized()
-        if ShowConfirmationDialog:
-            accept = Qt.QMessageBox.warning(None, "PyCorder Disclaimer", ConfirmationText, 
-                                            "Accept", "Cancel", "", 1)
-            if accept == 0:
-                win.usageConfirmed = True
-                app.exec_()
-            else:
-                win.close()
-        else:
-            win.usageConfirmed = True
-            app.exec_()
+        win.usageConfirmed = True
+        # if ShowConfirmationDialog:
+        #     accept = Qt.QMessageBox.warning(None, "PyCorder Disclaimer", ConfirmationText,
+        #                                     "Accept", "Cancel", "", 1)
+        #     if accept == 0:
+        #         win.usageConfirmed = True
+        #         app.exec_()
+        #     else:
+        #         win.close()
+        # else:
+        #
+        app.exec_()
     except Exception as e:
         tb = GetExceptionTraceBack()[0]
         Qt.QMessageBox.critical(None, "PyCorder", tb + " -> " + str(e))
@@ -1347,7 +1348,7 @@ def main(args):
     if ShowBatteryReminder and win and win.usageConfirmed:
         DlgBatteryInfo().exec_()
     
-    print "PyCorder terminated\n"
+    print("PyCorder terminated\n")
         
         
 if __name__ == '__main__':

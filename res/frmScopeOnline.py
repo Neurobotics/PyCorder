@@ -92,19 +92,47 @@ class Ui_frmScopeOnline(object):
         self.comboBoxGroupSize.addItem(QtCore.QString())
         self.comboBoxGroupSize.addItem(QtCore.QString())
         self.comboBoxGroupSize.addItem(QtCore.QString())
+
         self.gridLayout_OnlineScope.addWidget(self.comboBoxGroupSize, 2, 2, 1, 1)
         self.gridLayout_2.addLayout(self.gridLayout_OnlineScope, 0, 0, 1, 1)
         self.horizontalLayout = QtGui.QHBoxLayout()
         self.horizontalLayout.setContentsMargins(-1, 5, -1, -1)
         self.horizontalLayout.setObjectName("horizontalLayout")
+
         self.checkBoxBaseline = QtGui.QCheckBox(self.groupBox)
         self.checkBoxBaseline.setObjectName("checkBoxBaseline")
+
+        #Checkboxes for module enabling
+        self.checkBoxModule1 = QtGui.QCheckBox(self.groupBox)
+        self.checkBoxModule1.setObjectName("checkBoxModule1")
+        self.checkBoxModule2 = QtGui.QCheckBox(self.groupBox)
+        self.checkBoxModule2.setObjectName("checkBoxModule2")
+        self.checkBoxModule3 = QtGui.QCheckBox(self.groupBox)
+        self.checkBoxModule3.setObjectName("checkBoxModule3")
+        self.checkBoxModule4 = QtGui.QCheckBox(self.groupBox)
+        self.checkBoxModule4.setObjectName("checkBoxModule4")
+        self.checkBoxModule5 = QtGui.QCheckBox(self.groupBox)
+        self.checkBoxModule5.setObjectName("checkBoxModule5")
+
         self.horizontalLayout.addWidget(self.checkBoxBaseline)
+
         self.pushButton_Now = QtGui.QPushButton(self.groupBox)
         self.pushButton_Now.setObjectName("pushButton_Now")
         self.horizontalLayout.addWidget(self.pushButton_Now)
         self.gridLayout_2.addLayout(self.horizontalLayout, 1, 0, 1, 1)
         self.gridLayout.addWidget(self.groupBox, 0, 0, 1, 1)
+
+        #Module Control layouts
+
+        self.gridLayout_OnlineScope.addWidget(QtGui.QLabel("Enable modules:"))
+        vbox = QtGui.QHBoxLayout()
+        vbox.addWidget(self.checkBoxModule1)
+        vbox.addWidget(self.checkBoxModule2)
+        vbox.addWidget(self.checkBoxModule3)
+        vbox.addWidget(self.checkBoxModule4)
+        vbox.addWidget(self.checkBoxModule5)
+
+        self.gridLayout_OnlineScope.addLayout(vbox, self.gridLayout_OnlineScope.rowCount() - 1, 1, 1, 2)
 
         self.retranslateUi(frmScopeOnline)
         self.comboBoxTime.setCurrentIndex(6)
@@ -152,6 +180,16 @@ class Ui_frmScopeOnline(object):
         self.comboBoxGroupSize.setItemText(3, QtGui.QApplication.translate("frmScopeOnline", "8", None, QtGui.QApplication.UnicodeUTF8))
         self.comboBoxGroupSize.setItemText(4, QtGui.QApplication.translate("frmScopeOnline", "16", None, QtGui.QApplication.UnicodeUTF8))
         self.comboBoxGroupSize.setItemText(5, QtGui.QApplication.translate("frmScopeOnline", "32", None, QtGui.QApplication.UnicodeUTF8))
+
         self.checkBoxBaseline.setText(QtGui.QApplication.translate("frmScopeOnline", "Baseline Correction", None, QtGui.QApplication.UnicodeUTF8))
+
+        self.checkBoxModule1.setText(QtGui.QApplication.translate("frmScopeOnline", "1", None, QtGui.QApplication.UnicodeUTF8))
+        self.checkBoxModule2.setText(QtGui.QApplication.translate("frmScopeOnline", "2", None, QtGui.QApplication.UnicodeUTF8))
+        self.checkBoxModule3.setText(QtGui.QApplication.translate("frmScopeOnline", "3", None, QtGui.QApplication.UnicodeUTF8))
+        self.checkBoxModule4.setText(QtGui.QApplication.translate("frmScopeOnline", "4", None, QtGui.QApplication.UnicodeUTF8))
+        self.checkBoxModule5.setText(QtGui.QApplication.translate("frmScopeOnline", "5", None, QtGui.QApplication.UnicodeUTF8))
+
         self.pushButton_Now.setText(QtGui.QApplication.translate("frmScopeOnline", "Now", None, QtGui.QApplication.UnicodeUTF8))
+
+
 
